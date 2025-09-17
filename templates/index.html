@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODQ Mail - Web Client</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .folders {
+            list-style: none;
+        }
+
+        .folders li {
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .folders li:hover {
+            background: #34495e;
+        }
+
+        .folders li.active {
+            background: #3498db;
+        }
+
+        .folders li i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .user-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #34495e;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* Notifications */
+        .notifications-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-notifications {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-count.read {
+            background: #747d8c;
+        }
+
+        .notifications-popup {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .notification-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            border-left: 4px solid;
+        }
+
+        .notification-error {
+            border-left-color: #ff4757;
+            background-color: #ffe6e6;
+        }
+
+        .notification-warning {
+            border-left-color: #ffa502;
+            background-color: #fff4e6;
+        }
+
+        .notification-info {
+            border-left-color: #2ed573;
+            background-color: #e6f7ee;
+        }
+
+        /* Email List */
+        .email-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .email-list-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .email-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .email-item:hover {
+            background: #f8f9fa;
+        }
+
+        .email-item.unread {
+            background: #e3f2fd;
+            font-weight: 500;
+        }
+
+        .email-checkbox {
+            margin-right: 15px;
+        }
+
+        .email-sender {
+            width: 200px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .email-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .email-subject {
+            font-weight: 500;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .email-preview {
+            color: #6c757d;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .email-date {
+            width: 120px;
+            text-align: right;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Email View */
+        .email-view {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-left: 1px solid #dee2e6;
+            width: 60%;
+        }
+
+        .email-view-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .email-view-subject {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .email-view-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .email-view-from {
+            font-weight: 500;
+        }
+
+        .email-view-to {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .email-view-date {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .email-view-body {
+            line-height: 1.6;
+            color: #2c3e50;
+            white-space: pre-wrap;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        /* Compose Button */
+        .compose-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: background 0.3s;
+        }
+
+        .compose-btn:hover {
+            background: #2980b9;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .email-view {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-envelope"></i> ODQ Mail
+            </div>
+            
+            <ul class="folders">
+                <li class="active" data-folder="INBOX">
+                    <i class="fas fa-inbox"></i> Входящие
+                </li>
+                <li data-folder="SENT">
+                    <i class="fas fa-paper-plane"></i> Отправленные
+                </li>
+                <li data-folder="DRAFTS">
+                    <i class="fas fa-file-alt"></i> Черновики
+                </li>
+                <li data-folder="TRASH">
+                    <i class="fas fa-trash"></i> Корзина
+                </li>
+            </ul>
+            
+            <div class="user-info">
+                <div id="user-name">User</div>
+                <div id="user-email" style="font-size: 12px; opacity: 0.8;"></div>
+                <a href="/logout" style="color: #3498db; text-decoration: none; font-size: 12px;">Выйти</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="search-box">
+                    <input type="text" placeholder="Поиск писем..." id="search-input">
+                </div>
+                
+                <div class="header-actions">
+                    <div class="notifications-container">
+                        <button id="notifications-btn" class="btn btn-notifications">
+                            <i class="fas fa-bell"></i>
+                            <span id="notification-count" class="notification-count">0</span>
+                        </button>
+                        <button id="mark-all-read-btn" class="btn btn-secondary">Прочитать все</button>
+                        
+                        <div id="notifications-popup" class="notifications-popup">
+                            <h3>Уведомления</h3>
+                            <div id="notifications-list"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="refreshEmails()">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                </div>
+            </div>
+
+            <!-- Email List -->
+            <div class="email-list">
+                <div class="email-list-header">
+                    <div>
+                        <input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)">
+                        <label for="select-all">Выбрать все</label>
+                    </div>
+                    
+                    <div class="pagination">
+                        <span class="pagination-info" id="pagination-info">Страница 1 из 1</span>
+                        <button class="btn btn-secondary" onclick="changePage(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-secondary" onclick="changePage(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="emails-container"></div>
+                
+                <div class="loading" id="loading-emails">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка писем...
+                </div>
+            </div>
+
+            <!-- Email View -->
+            <div class="email-view" id="email-view">
+                <div class="email-view-header">
+                    <h2 class="email-view-subject" id="email-view-subject"></h2>
+                    <div class="email-view-meta">
+                        <div>
+                            <div class="email-view-from" id="email-view-from"></div>
+                            <div class="email-view-to" id="email-view-to"></div>
+                        </div>
+                        <div class="email-view-date" id="email-view-date"></div>
+                    </div>
+                </div>
+                
+                <div class="email-view-body" id="email-view-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compose Button -->
+    <button class="compose-btn" onclick="showComposeModal()">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Compose Modal -->
+    <div class="modal" id="compose-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Новое письмо</h3>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Кому:</label>
+                    <input type="email" id="compose-to" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тема:</label>
+                    <input type="text" id="compose-subject">
+                </div>
+                
+                <div class="form-group">
+                    <label>Сообщение:</label>
+                    <textarea id="compose-body" required></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideComposeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="sendEmail()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFolder = 'INBOX';
+        let currentPage = 1;
+        let currentPageSize = 20;
+        let totalPages = 1;
+        let selectedEmails = new Set();
+        let currentEmail = null;
+
+        // Загрузка при старте
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadEmails();
+            loadNotifications();
+            
+            // Обновляем уведомления каждые 30 секунд
+            setInterval(loadNotifications, 30000);
+        });
+
+        // Загрузка информации пользователя
+        function loadUserInfo() {
+            const userName = '{{ user_name }}';
+            const userEmail = '{{ session.user_email }}';
+            
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-email').textContent = userEmail;
+        }
+
+        // Загрузка писем
+        async function loadEmails() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/emails/${currentFolder}?page=${currentPage}&page_size=${currentPageSize}`);
+                
+                // Проверяем, не перенаправляет ли нас на логин
+                if (response.redirected && response.url.includes('/login')) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayEmails(data);
+                } else {
+                    addNotification('Ошибка загрузки писем: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    // Если сервер вернул HTML вместо JSON (сессия истекла)
+                    window.location.href = '/login';
+                } else {
+                    addNotification('Ошибка сети: ' + error.message, 'error');
+                }
+            }
+            
+            showLoading(false);
+        }
+
+        // Отображение писем
+        function displayEmails(data) {
+            const container = document.getElementById('emails-container');
+            container.innerHTML = '';
+            
+            totalPages = data.pages || 1;
+            updatePaginationInfo();
+            
+            if (data.emails.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="fas fa-envelope-open" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>Нет писем в этой папке</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            data.emails.forEach(email => {
+                const emailElement = document.createElement('div');
+                emailElement.className = `email-item ${email.is_read ? '' : 'unread'}`;
+                emailElement.innerHTML = `
+                    <input type="checkbox" class="email-checkbox" data-uuid="${email.uuid}" 
+                           onchange="toggleEmailSelection('${email.uuid}', this.checked)">
+                    <div class="email-sender">${escapeHtml(email.from_email)}</div>
+                    <div class="email-content">
+                        <div class="email-subject">${escapeHtml(email.subject)}</div>
+                        <div class="email-preview">${getEmailPreview(email.body)}</div>
+                    </div>
+                    <div class="email-date">${formatDate(email.received_at)}</div>
+                `;
+                
+                emailElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('email-checkbox')) {
+                        viewEmail(email.uuid);
+                    }
+                });
+                
+                container.appendChild(emailElement);
+            });
+        }
+
+        // Просмотр письма
+        async function viewEmail(uuid) {
+            try {
+                const response = await fetch(`/api/email/${uuid}`);
+                
+                // Проверяем, не перенаправляет ли нас на логин
+                if (response.redirected && response.url.includes('/login')) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Проверяем, является ли ответ JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Если сервер вернул HTML вместо JSON (сессия истекла)
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentEmail = data;
+                    displayEmail(data);
+                } else {
+                    addNotification('Ошибка загрузки письма: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    // Если сервер вернул HTML вместо JSON (сессия истекла)
+                    window.location.href = '/login';
+                } else {
+                    addNotification('Ошибка загрузки письма: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Отображение письма
+        function displayEmail(email) {
+            const view = document.getElementById('email-view');
+            view.style.display = 'block';
+            
+            document.getElementById('email-view-subject').textContent = email.header.subject;
+            document.getElementById('email-view-from').textContent = `От: ${email.header.from_email}`;
+            document.getElementById('email-view-to').textContent = `Кому: ${email.header.to_email}`;
+            document.getElementById('email-view-date').textContent = formatDate(email.header.date);
+            document.getElementById('email-view-body').textContent = email.content;
+            
+            // Прокрутка к верху
+            view.scrollTop = 0;
+        }
+
+        // Обновление информации о пагинации
+        function updatePaginationInfo() {
+            document.getElementById('pagination-info').textContent = 
+                `Страница ${currentPage} из ${totalPages}`;
+        }
+
+        // Смена страницы
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                loadEmails();
+            }
+        }
+
+        // Обновление писем
+        function refreshEmails() {
+            currentPage = 1;
+            loadEmails();
+        }
+
+        // Управление уведомлениями
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                
+                if (response.redirected && response.url.includes('/login')) {
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateNotifications(data);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки уведомлений:', error);
+            }
+        }
+
+        function updateNotifications(data) {
+            const countElement = document.getElementById('notification-count');
+            const listElement = document.getElementById('notifications-list');
+            
+            countElement.textContent = data.unread_count || 0;
+            
+            if (data.unread_count > 0) {
+                countElement.classList.remove('read');
+            } else {
+                countElement.classList.add('read');
+            }
+            
+            listElement.innerHTML = '';
+            
+            if (data.notifications && data.notifications.length > 0) {
+                data.notifications.forEach(notification => {
+                    const item = document.createElement('div');
+                    item.className = `notification-item notification-${notification.level || 'info'}`;
+                    item.innerHTML = `
+                        <strong>${escapeHtml((notification.level || 'info').toUpperCase())}</strong>
+                        <p>${escapeHtml(notification.message)}</p>
+                        <small>${new Date(notification.timestamp).toLocaleString()}</small>
+                    `;
+                    listElement.appendChild(item);
+                });
+            } else {
+                listElement.innerHTML = '<p>Нет уведомлений</p>';
+            }
+        }
+
+        async function markAllNotificationsRead() {
+            try {
+                const response = await fetch('/api/notifications/read_all', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    loadNotifications();
+                }
+            } catch (error) {
+                addNotification('Ошибка отметки уведомлений: ' + error.message, 'error');
+            }
+        }
+
+        // Функция для добавления уведомлений
+        async function addNotification(message, level = 'error') {
+            try {
+                const response = await fetch('/api/notifications/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        level: level
+                    })
+                });
+                
+                if (response.ok) {
+                    loadNotifications();
+                }
+            } catch (error) {
+                console.error('Ошибка добавления уведомления:', error);
+            }
+        }
+
+        // Управление модальным окном
+        function showComposeModal() {
+            // Очищаем поля перед показом
+    document.getElementById('compose-to').value = '';
+    document.getElementById('compose-subject').value = '';
+    document.getElementById('compose-body').value = '';
+    
+        
+            document.getElementById('compose-modal').style.display = 'block';
+        }
+
+        function hideComposeModal() {
+            document.getElementById('compose-modal').style.display = 'none';
+        }
+
+        // Отправка письма
+        async function sendEmail() {
+            const to = document.getElementById('compose-to').value;
+            const subject = document.getElementById('compose-subject').value;
+            const body = document.getElementById('compose-body').value;
+            
+            if (!to || !body) {
+                addNotification('Заполните поля "Кому" и "Сообщение"', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/email/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: to,
+                        subject: subject,
+                        body: body
+                    })
+                });
+                
+                if (response.redirected && response.url.includes('/login')) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    hideComposeModal();
+                    addNotification('Письмо отправлено успешно!', 'success');
+                    refreshEmails();
+                } else {
+                    addNotification('Ошибка отправки: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                addNotification('Ошибка сети: ' + error.message, 'error');
+            }
+        }
+
+        // Вспомогательные функции
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Нет даты';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Некорректная дата';
+                
+                return date.toLocaleString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return 'Некорректная дата';
+            }
+        }
+
+        function getEmailPreview(body) {
+            if (!body) return '';
+            
+            // Простой превью - берем первые 100 символов
+            let text = body.toString();
+            
+            // Убираем служебные заголовки если они в начале
+            if (text.startsWith('Content-Type')) {
+                // Ищем начало тела письма
+                const bodyStart = text.indexOf('\r\n\r\n');
+                if (bodyStart !== -1) {
+                    text = text.substring(bodyStart + 4);
+                }
+            }
+            
+            // Убираем лишние пробелы
+            text = text.replace(/\s+/g, ' ').trim();
+            
+            // Берем первые 80 символов
+            return text.length > 80 ? text.substring(0, 80) + '...' : text;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-emails').style.display = show ? 'block' : 'none';
+        }
+
+        // Обработчики событий
+        document.querySelectorAll('.folders li').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.folders li').forEach(li => li.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFolder = this.dataset.folder;
+                currentPage = 1;
+                loadEmails();
+                
+                // Скрываем просмотр письма при смене папки
+                document.getElementById('email-view').style.display = 'none';
+            });
+        });
+
+        document.getElementById('notifications-btn').addEventListener('click', function() {
+            const popup = document.getElementById('notifications-popup');
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.getElementById('mark-all-read-btn').addEventListener('click', markAllNotificationsRead);
+
+        // Закрытие попапа уведомлений при клике вне его
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('notifications-popup');
+            const btn = document.getElementById('notifications-btn');
+            
+            if (popup.style.display === 'block' && !popup.contains(e.target) && !btn.contains(e.target)) {
+                popup.style.display = 'none';
+            }
+        });
+
+        // Закрытие модального окна при клике вне его
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('compose-modal');
+            if (e.target === modal) {
+                hideComposeModal();
+            }
+        });
+    </script>
+</body>
+</html>
