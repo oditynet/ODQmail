@@ -11,6 +11,9 @@ Build:
 ```
 make
 bash makeDB.sh
+
+openssl req -x509 -newkey rsa:4096 -keyout ssl_certs/mail_server.key -out ssl_certs/mail_server.pem -days 365 -nodes -subj "/CN=oditynet.ru"
+
 sudo ./mail_server
 python web_client.py
 ```
